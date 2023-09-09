@@ -28,20 +28,26 @@ app.post('/gen', async (request, reply) => {
 
 	const v8TargetVersion = payload.v8;
 	const v8TargetMode = 'release';
+
 	const androidDir = `/app/ti-android/${v8TargetVersion}/${v8TargetMode}`;
 	const v8LibDirectory = path.join(androidDir, 'libs');
-	const tmp = `/app/tmp/ti-v8-${Math.floor(Math.random() * 1e6)}`;
+	const v8ArchiveFileName = `libv8-${v8TargetVersion}-${v8TargetMode}.tar.bz2`;
+
+	const tmp = `/app/tmp`;
+	const downloadedFile = path.join(tmp, v8ArchiveFileName);
+	const startupPath = path.join(tmp, `startup-${Math.floor(Math.random() * 1e4)}.js`);
+
+	if (existsSync(downloadedFile)) {
+		return await reply.code(202).send('Already processing, check back in a few');
+	}
 
 	try {
 		await fs.mkdir(tmp, { recursive: true });
 		await fs.mkdir(androidDir, { recursive: true });
 
-		const startupPath = path.join(tmp, 'startup.js');
 		await fs.writeFile(startupPath, `this._startSnapshot = global => { ${payload.script} };`, 'utf-8');
 
 		if (!existsSync(v8LibDirectory)) {
-			const v8ArchiveFileName = `libv8-${v8TargetVersion}-${v8TargetMode}.tar.bz2`;
-			const downloadedFile = path.join(tmp, v8ArchiveFileName);
 			const downloadUrl = `https://github.com/tidev/v8_titanium/releases/download/v${v8TargetVersion}/${v8ArchiveFileName}`;
 			// console.log(`Downloading ${downloadUrl} to ${downloadedFile}`);
 			await $`curl -L -o ${downloadedFile} ${downloadUrl}`;
@@ -114,7 +120,12 @@ app.post('/gen', async (request, reply) => {
 	} catch (e) {
 		await reply.code(500).send(e.message);
 	} finally {
-		await rimraf(tmp);
+		if (existsSync(downloadedFile)) {
+			await fs.unlink(downloadedFile);
+		}
+		if (existsSync(startupPath)) {
+			await fs.unlink(startupPath);
+		}
 	}
 })
 
