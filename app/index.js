@@ -3,7 +3,6 @@ import { fastifyStatic } from '@fastify/static';
 import { fileURLToPath } from 'node:url';
 import ejs from 'ejs';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { $ } from 'execa';
@@ -29,9 +28,9 @@ app.post('/gen', async (request, reply) => {
 
 	const v8TargetVersion = payload.v8;
 	const v8TargetMode = 'release';
-	const androidDir = path.join(os.tmpdir(), 'ti-android', v8TargetVersion, v8TargetMode);
+	const androidDir = `/app/ti-android/${v8TargetVersion}/${v8TargetMode}`;
 	const v8LibDirectory = path.join(androidDir, 'libs');
-	const tmp = path.join(os.tmpdir(), `ti-v8-${Math.floor(Math.random() * 1e6)}`);
+	const tmp = `/app/tmp/ti-v8-${Math.floor(Math.random() * 1e6)}`;
 
 	try {
 		await fs.mkdir(tmp, { recursive: true });
