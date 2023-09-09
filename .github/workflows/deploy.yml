@@ -1,0 +1,29 @@
+---
+name: 'deploy'
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloning repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Push to dokku
+        uses: dokku/github-action@master
+        with:
+          branch: 'main'
+          git_remote_url: 'ssh://dokku@titaniumsdk.com:22/v8-snapshot.titaniumsdk.com'
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
