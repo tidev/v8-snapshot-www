@@ -128,6 +128,7 @@ const port = (() => {
 })() || 3000;
 
 await app.listen({
+	host: '0.0.0.0',
 	port
 });
 
