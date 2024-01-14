@@ -9,5 +9,5 @@ RUN dpkg --add-architecture i386 \
 	&& corepack enable \
 	&& pnpm install --frozen-lockfile
 
-EXPOSE 5000/tcp
-CMD node app --port 5000
+EXPOSE 80/tcp
+CMD node app --port 80
